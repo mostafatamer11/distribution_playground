@@ -7,6 +7,7 @@ import matplotlib as mpl
 from scipy.stats import lognorm, norm
 import os
 import utility
+import menu
 
 
 theme = os.path.join(".", "assets", "themes", "green.json")
@@ -34,10 +35,10 @@ class DistributionApp(ctk.CTk):
         self.plot_frame = ctk.CTkFrame(self)
         self.plot_frame.pack(side=ctk.BOTTOM, fill=ctk.BOTH, expand=True)
 
+        self.create_menu()
         self.control_frame = ctk.CTkFrame(self, width=200)
         self.control_frame.pack(side=ctk.TOP, fill=ctk.Y)
 
-        self.create_menu()
         self.create_controls()
         self.create_plot_canvas()
         self.plot_distribution()
@@ -52,35 +53,42 @@ class DistributionApp(ctk.CTk):
         self.canvas.get_tk_widget().pack(fill=ctk.BOTH, expand=True)
 
     def create_menu(self):
-        menubar = tk.Menu(self,
-                    bg=utility.gray_to_hex(ctk.ThemeManager.theme["CTk"]["fg_color"][0]),
-                    fg=utility.gray_to_hex(ctk.ThemeManager.theme["CTk"]["fg_color"][1]))
+        self.menubar = menu.CustomMenuBar(self, {
+            "CTk": {
+                "fg_color": ["gray92", "gray34"]
+            },
+            "CTkButton": {
+                "fg_color": ["#2CC985", "#2FA572"],
+                "hover_color": ["#0C955A", "#106A43"]
+            }
+        })
 
-        axis_menu = tk.Menu(menubar, tearoff=0)
-        axis_menu.add_command(label="Set Manual Limits", command=self.set_manual_xlim)
-        axis_menu.add_command(label="Reset to Auto", command=self.reset_xlim)
+        self.menubar.add_menu("Axis",
+            {
+                "Set Manual Limits": {"command": self.set_manual_xlim, "type": "button"},
+                "Reset to Auto": {"command": self.reset_xlim, "type": "button"},
+            })
 
-        edit_menu = tk.Menu(menubar, tearoff=0)
-        edit_menu.add_checkbutton(label="Mean", variable=self.show_mean_line, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Median", variable=self.show_median_line, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Mode", variable=self.show_mode_line, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Std Dev Range", variable=self.show_stddev_lines, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Skewness", variable=self.show_skewness, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Kurtosis", variable=self.show_kurtosis, command=self.plot_distribution)
-        edit_menu.add_checkbutton(label="Range (Min, Max)", variable=self.show_range, command=self.plot_distribution)
+        self.menubar.add_menu("Edit",
+            {
+                "Mean": {"variable": self.show_mean_line, "type": "checkbox", "command": self.plot_distribution},
+                "Median": {"variable": self.show_median_line, "type": "checkbox", "command": self.plot_distribution},
+                "Mode": {"variable": self.show_mode_line, "type": "checkbox", "command": self.plot_distribution},
+                "Std Dev Range": {"variable": self.show_stddev_lines, "type": "checkbox", "command": self.plot_distribution},
+                "Skewness": {"variable": self.show_skewness, "type": "checkbox", "command": self.plot_distribution},
+                "Kurtosis": {"variable": self.show_kurtosis, "type": "checkbox", "command": self.plot_distribution},
+                "Range (Min, Max)": {"variable": self.show_range, "type": "checkbox", "command": self.plot_distribution},
+        })
 
+        self.menubar.add_menu("View",
+            {
+                "Show Mean Line": {"variable": self.show_mean_line, "type": "checkbox", "command": self.plot_distribution},
+                "Show Median Line": {"variable": self.show_median_line, "type": "checkbox", "command": self.plot_distribution},
+                "Show Mode Line": {"variable": self.show_mode_line, "type": "checkbox", "command": self.plot_distribution},
+                "Show Std Dev Range": {"variable": self.show_stddev_lines, "type": "checkbox", "command": self.plot_distribution},
+        })
 
-        view_menu = tk.Menu(menubar, tearoff=0)
-        view_menu.add_checkbutton(label="Show Mean Line", variable=self.show_mean_line, command=self.plot_distribution)
-        view_menu.add_checkbutton(label="Show Median Line", variable=self.show_median_line, command=self.plot_distribution)
-        view_menu.add_checkbutton(label="Show Mode Line", variable=self.show_mode_line, command=self.plot_distribution)
-        view_menu.add_checkbutton(label="Show Std Dev Range", variable=self.show_stddev_lines, command=self.plot_distribution)
-
-        menubar.add_cascade(label="X-Axis Range", menu=axis_menu)
-        menubar.add_cascade(label="View", menu=view_menu)
-        menubar.add_cascade(label="Edit", menu=edit_menu)
-
-        self.config(menu=menubar)
+        self.menubar.show()
 
     def set_manual_xlim(self):
         dialog = ctk.CTkInputDialog(text="Enter x-axis min,max (e.g. -10,10):", title="Set X-Axis Limits")
