@@ -9,6 +9,7 @@ import os
 import utility
 import menu
 import pdf
+from slider import Slider
 
 
 theme = os.path.join(".", "assets", "themes", "green.json")
@@ -123,27 +124,24 @@ class DistributionApp(ctk.CTk):
         self.plot_distribution()
 
     def create_controls(self):
-        ctk.CTkLabel(self.control_frame, text="Mean").pack(pady=(10, 0))
-        self.mean_slider = ctk.CTkSlider(
-            self.control_frame, from_=-10, to=10,
+        self.layout = 2, 2
+        self.mean_slider = Slider(
+            self.control_frame, label_text="Mean", from_=-10, to=10,
             variable=self.mean_var, command=self.plot_distribution
         )
-        self.mean_slider.pack(padx=10, pady=(0, 10))
+        self.mean_slider.grid(padx=10, pady=(0, 20), row=0, column=0)
 
-        ctk.CTkLabel(self.control_frame, text="Standard Deviation").pack(pady=(10, 0))
-        self.std_slider = ctk.CTkSlider(
-            self.control_frame, from_=0.1, to=20,
+        self.std_slider = Slider(
+            self.control_frame, label_text="Standard Deviation", from_=0.1, to=20,
             variable=self.std_var, command=self.plot_distribution
         )
-        self.std_slider.pack(padx=10, pady=(0, 20))
+        self.std_slider.grid(padx=10, pady=(0, 20), row=1, column=0)
 
-        ctk.CTkLabel(self.control_frame, text="Skewness").pack(pady=5)
-        self.skew_slider = ctk.CTkSlider(self.control_frame, from_=-10, to=10, variable=self.skew_var, command=self.plot_distribution)
-        self.skew_slider.pack(padx=10)
+        self.skew_slider = Slider(self.control_frame, label_text="Skewness", from_=-10, to=10, variable=self.skew_var, command=self.plot_distribution)
+        self.skew_slider.grid(padx=10, pady=(0, 20), row=0, column=1)
 
-        ctk.CTkLabel(self.control_frame, text="Kurtosis").pack(pady=5)
-        self.kurt_slider = ctk.CTkSlider(self.control_frame, from_=-10, to=10, variable=self.kurt_var, command=self.plot_distribution)
-        self.kurt_slider.pack(padx=10)
+        self.kurt_slider = Slider(self.control_frame, label_text="Kurtosis", from_=-10, to=10, variable=self.kurt_var, command=self.plot_distribution)
+        self.kurt_slider.grid(padx=10, pady=(0, 20), row=1, column=1)
 
     def plot_distribution(self, *args):
         self.ax.clear()
@@ -183,7 +181,7 @@ class DistributionApp(ctk.CTk):
             self.ax.axvline(x=mean - std*3, color="purple", linestyle="--", label="-3σ")
             self.ax.axvline(x=mean + std*3, color="purple", linestyle="--", label="+3σ")
 
-        self.ax.set_title(f"Distribution(mean={mean}, std={std}, skew={skew}, kurt={kurt})")
+        self.ax.set_title(f"Distribution(mean={mean:.2f}, std={std:.2f}, skew={skew:.2f}, kurt={kurt:.2f})")
         self.ax.grid(True)
 
         if self.manual_xlim:
