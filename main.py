@@ -171,6 +171,7 @@ class DistributionApp(ctk.CTk):
 
         line_color = mpl.rcParams["lines.color"]
         self.ax.plot(self.x, self.y, label="Distribution", color=line_color)
+
         if self.show_mean_line.get():
             self.ax.axvline(x=mean, color="r", linestyle="--", label="Mean")
 
