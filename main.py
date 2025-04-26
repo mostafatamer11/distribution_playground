@@ -8,6 +8,7 @@ from scipy.stats import lognorm, norm
 import os
 import utility
 import menu
+import pdf
 
 
 theme = os.path.join(".", "assets", "themes", "green.json")
@@ -31,6 +32,11 @@ class DistributionApp(ctk.CTk):
         self.show_kurtosis = tk.BooleanVar(value=False)
         self.show_range = tk.BooleanVar(value=False)
 
+        self.std_var = ctk.DoubleVar(value=1)
+        self.mean_var = ctk.DoubleVar(value=0)
+        self.skew_var = ctk.IntVar(value=0)
+        self.kurt_var = ctk.IntVar(value=0)
+
         # Main frames
         self.plot_frame = ctk.CTkFrame(self)
         self.plot_frame.pack(side=ctk.BOTTOM, fill=ctk.BOTH, expand=True)
@@ -39,12 +45,21 @@ class DistributionApp(ctk.CTk):
         self.control_frame = ctk.CTkFrame(self, width=200)
         self.control_frame.pack(side=ctk.TOP, fill=ctk.Y)
 
+        self.x = np.linspace(self.mean_var.get() - 4 * self.std_var.get(),
+                        self.mean_var.get() + 4 * self.std_var.get(), 40000)
+        self.f = pdf.EditablePDF(
+            mean=self.mean_var.get(),
+            std=self.std_var.get(),
+            skew=self.skew_var.get(),
+            kurtosis=self.kurt_var.get(),
+            x=self.x
+        )
+
         self.create_controls()
         self.create_plot_canvas()
         self.plot_distribution()
 
     def create_plot_canvas(self):
-        # Create figure and canvas once
         self.fig = Figure(figsize=(6, 4), dpi=100)
         self.ax = self.fig.add_subplot(111)
 
@@ -109,7 +124,6 @@ class DistributionApp(ctk.CTk):
 
     def create_controls(self):
         ctk.CTkLabel(self.control_frame, text="Mean").pack(pady=(10, 0))
-        self.mean_var = ctk.DoubleVar(value=0)
         self.mean_slider = ctk.CTkSlider(
             self.control_frame, from_=-10, to=10,
             variable=self.mean_var, command=self.plot_distribution
@@ -117,7 +131,6 @@ class DistributionApp(ctk.CTk):
         self.mean_slider.pack(padx=10, pady=(0, 10))
 
         ctk.CTkLabel(self.control_frame, text="Standard Deviation").pack(pady=(10, 0))
-        self.std_var = ctk.DoubleVar(value=1)
         self.std_slider = ctk.CTkSlider(
             self.control_frame, from_=0.1, to=20,
             variable=self.std_var, command=self.plot_distribution
@@ -125,70 +138,58 @@ class DistributionApp(ctk.CTk):
         self.std_slider.pack(padx=10, pady=(0, 20))
 
         ctk.CTkLabel(self.control_frame, text="Skewness").pack(pady=5)
-        self.skew_var = ctk.IntVar(value=0)
         self.skew_slider = ctk.CTkSlider(self.control_frame, from_=-10, to=10, variable=self.skew_var, command=self.plot_distribution)
         self.skew_slider.pack(padx=10)
 
-        ctk.CTkButton(self.control_frame, text="Update", command=self.plot_distribution).pack(pady=10)
-
+        ctk.CTkLabel(self.control_frame, text="Kurtosis").pack(pady=5)
+        self.kurt_slider = ctk.CTkSlider(self.control_frame, from_=-10, to=10, variable=self.kurt_var, command=self.plot_distribution)
+        self.kurt_slider.pack(padx=10)
 
     def plot_distribution(self, *args):
         self.ax.clear()
 
         mean = self.mean_var.get()
         std = self.std_var.get()
-        skew = self.skew_var.get()  # Get the skewness from the slider
-
-        x = np.linspace(mean - 4 * std, mean + 4 * std, 400)
-        y = norm.pdf(x, loc=mean, scale=std)
+        skew = self.skew_var.get()
+        kurt = self.kurt_var.get()
 
         if std < 0:
             raise ValueError("Standard Deviation cannot be negative")
 
+        self.f.set_kurtosis(kurt)
+        self.f.set_skew(skew)
+        self.f.set_mean(mean)
+        self.f.set_std(std)
+
+        summ:tuple = self.f.plot
+        self.x = summ[0]
+        self.y = summ[1]
+        self.mean_var.set(summ[2])
+        self.std_var.set(summ[3])
+        self.skew_var.set(summ[4])
+        self.kurt_var.set(summ[5])
+
         line_color = mpl.rcParams["lines.color"]
-        self.ax.plot(x, y, label='Distribution', color=line_color)
+        self.ax.plot(self.x, self.y, label="Distribution", color=line_color)
 
-        # Add mean line
         if self.show_mean_line.get():
-            self.ax.axvline(x=mean, color='r', linestyle='--', label='Mean')
-
-        # Show other statistics as needed
-        if self.show_median_line.get():
-            median = np.median(x)
-            self.ax.axvline(x=median, color='g', linestyle='-.', label='Median')
-
-        if self.show_mode_line.get():
-            mode = mean 
-            self.ax.axvline(x=mode, color='b', linestyle=':', label='Mode')
+            self.ax.axvline(x=mean, color="r", linestyle="--", label="Mean")
 
         if self.show_stddev_lines.get():
-            self.ax.axvline(x=mean - std, color='purple', linestyle='--', label='-1σ')
-            self.ax.axvline(x=mean + std, color='purple', linestyle='--', label='+1σ')
-            self.ax.axvline(x=mean - std*2, color='purple', linestyle='--', label='-2σ')
-            self.ax.axvline(x=mean + std*2, color='purple', linestyle='--', label='+2σ')
-            self.ax.axvline(x=mean - std*3, color='purple', linestyle='--', label='-3σ')
-            self.ax.axvline(x=mean + std*3, color='purple', linestyle='--', label='+3σ')
+            self.ax.axvline(x=mean - std, color="purple", linestyle="--", label="-1σ")
+            self.ax.axvline(x=mean + std, color="purple", linestyle="--", label="+1σ")
+            self.ax.axvline(x=mean - std*2, color="purple", linestyle="--", label="-2σ")
+            self.ax.axvline(x=mean + std*2, color="purple", linestyle="--", label="+2σ")
+            self.ax.axvline(x=mean - std*3, color="purple", linestyle="--", label="-3σ")
+            self.ax.axvline(x=mean + std*3, color="purple", linestyle="--", label="+3σ")
 
-
-        if self.show_skewness.get():
-            self.ax.text(mean, 0.3, f"Skewness={skew}", horizontalalignment='center', color='orange')
-
-        if self.show_kurtosis.get():
-            kurt = 3  # Normal distribution kurtosis is 3 (simplified)
-            self.ax.text(mean, 0.3, f"Kurtosis={kurt}", horizontalalignment='center', color='brown')
-
-        if self.show_range.get():
-            self.ax.axvline(x=np.min(x), color='purple', linestyle='-', label=f'Min={np.min(x):.2f}')
-            self.ax.axvline(x=np.max(x), color='purple', linestyle='-', label=f'Max={np.max(x):.2f}')
-
-        self.ax.set_title(f"Distribution(mean={mean}, std={std}, skew={skew})")
+        self.ax.set_title(f"Distribution(mean={mean}, std={std}, skew={skew}, kurt={kurt})")
         self.ax.grid(True)
 
-        # Auto x-limits based on data
         if self.manual_xlim:
             self.ax.set_xlim(*self.manual_xlim)
         else:
-            self.ax.set_xlim(x[0], x[-1])
+            self.ax.set_xlim(self.x[0], self.x[-1])
 
         self.ax.set_ylim(0, 0.5)
         self.canvas.draw()
