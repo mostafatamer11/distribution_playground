@@ -1,3 +1,8 @@
 .venv
 __pycache__
 test.py
+build
+dist
+main.spec
+compile.iss
+Output
