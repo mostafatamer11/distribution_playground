@@ -1,5 +1,17 @@
 import json
+import os, sys
 import matplotlib as mpl
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource (works for dev and for PyInstaller)"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+        print(base_path)
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 
 def gray_to_hex(gray_value: str):

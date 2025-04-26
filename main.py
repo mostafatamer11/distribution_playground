@@ -4,7 +4,6 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib as mpl
-from scipy.stats import lognorm, norm
 import os
 import utility
 import menu
@@ -12,7 +11,7 @@ import pdf
 from slider import Slider
 
 
-theme = os.path.join(".", "assets", "themes", "green.json")
+theme = utility.resource_path(os.path.join("assets", "themes", "green.json"))
 
 class DistributionApp(ctk.CTk):
     def __init__(self, resolution="900x600"):
