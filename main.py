@@ -84,17 +84,6 @@ class DistributionApp(ctk.CTk):
                 "Reset to Auto": {"command": self.reset_xlim, "type": "button"},
             })
 
-        self.menubar.add_menu("Edit",
-            {
-                "Mean": {"variable": self.show_mean_line, "type": "checkbox", "command": self.plot_distribution},
-                "Median": {"variable": self.show_median_line, "type": "checkbox", "command": self.plot_distribution},
-                "Mode": {"variable": self.show_mode_line, "type": "checkbox", "command": self.plot_distribution},
-                "Std Dev Range": {"variable": self.show_stddev_lines, "type": "checkbox", "command": self.plot_distribution},
-                "Skewness": {"variable": self.show_skewness, "type": "checkbox", "command": self.plot_distribution},
-                "Kurtosis": {"variable": self.show_kurtosis, "type": "checkbox", "command": self.plot_distribution},
-                "Range (Min, Max)": {"variable": self.show_range, "type": "checkbox", "command": self.plot_distribution},
-        })
-
         self.menubar.add_menu("View",
             {
                 "Show Mean Line": {"variable": self.show_mean_line, "type": "checkbox", "command": self.plot_distribution},
